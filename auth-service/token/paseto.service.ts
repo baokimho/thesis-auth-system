@@ -1,7 +1,14 @@
 import { V4 } from "paseto";
-import { generateKeyPairSync } from "crypto";
+import { createPrivateKey, createPublicKey } from "crypto";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+const privateKey = createPrivateKey(
+  readFileSync(join(__dirname, "../key/paseto_private.key"))
+);
+const publicKey = createPublicKey(
+  readFileSync(join(__dirname, "../key/paseto_public.pub"))
+);
 
 export class PASETOService {
   async generateAccessToken(payload: any): Promise<string> {

@@ -1,15 +1,14 @@
 import jwt from "jsonwebtoken";
-import fs from "fs";
-import path from "path";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { createPrivateKey, createPublicKey } from "crypto";
 
-const privateKey = fs.readFileSync(
-  path.join(__dirname, "../key/private.key"),
-  "utf8"
+const privateKey = createPrivateKey(
+  readFileSync(join(__dirname, "../key/jwt_private.key"))
 );
 
-const publicKey = fs.readFileSync(
-  path.join(__dirname, "../key/public.key"),
-  "utf8"
+const publicKey = createPublicKey(
+  readFileSync(join(__dirname, "../key/jwt_public.pub"))
 );
 
 export class JWTService {
