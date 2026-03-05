@@ -1,25 +1,101 @@
-const { generateKeyPairSync } = require("crypto")
-const fs = require("fs")
-const path = require("path")
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { generateKeyPairSync } from "crypto";
+import fs from "fs";
+import path from "path";
 
-const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const authKeyDir = path.join(__dirname, "../auth-service/key");
+const gatewayKeyDir = path.join(__dirname, "../api-gateway/key");
+
+if (!fs.existsSync(authKeyDir)) {
+  fs.mkdirSync(authKeyDir, { recursive: true });
+}
+
+if (!fs.existsSync(gatewayKeyDir)) {
+  fs.mkdirSync(gatewayKeyDir, { recursive: true });
+}
+
+/**
+ * ======================
+ * JWT RSA KEYS
+ * ======================
+ */
+
+const jwtKeys = generateKeyPairSync("rsa", {
   modulusLength: 2048,
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem",
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-  },
-})
+});
 
-const authPrivate = path.join(__dirname, "../auth-service/keys/private.key")
-const authPublic = path.join(__dirname, "../auth-service/keys/public.key")
-const resourcePublic = path.join(__dirname, "../resource-service/keys/public.key")
+const jwtPrivate = jwtKeys.privateKey.export({
+  type: "pkcs8",
+  format: "pem",
+});
 
-fs.writeFileSync(authPrivate, privateKey)
-fs.writeFileSync(authPublic, publicKey)
-fs.writeFileSync(resourcePublic, publicKey)
+const jwtPublic = jwtKeys.publicKey.export({
+  type: "spki",
+  format: "pem",
+});
 
-console.log("RSA keys generated successfully.");
+/* private -> auth-service */
+
+fs.writeFileSync(
+  path.join(authKeyDir, "jwt_private.key"),
+  jwtPrivate
+);
+
+/* public -> auth-service */
+
+fs.writeFileSync(
+  path.join(authKeyDir, "jwt_public.pub"),
+  jwtPublic
+);
+
+/* public -> api-gateway */
+
+fs.writeFileSync(
+  path.join(gatewayKeyDir, "jwt_public.pub"),
+  jwtPublic
+);
+
+/**
+ * ======================
+ * PASETO Ed25519 KEYS
+ * ======================
+ */
+
+const pasetoKeys = generateKeyPairSync("ed25519");
+
+const pasetoPrivate = pasetoKeys.privateKey.export({
+  type: "pkcs8",
+  format: "pem",
+});
+
+const pasetoPublic = pasetoKeys.publicKey.export({
+  type: "spki",
+  format: "pem",
+});
+
+/* private -> auth-service */
+
+fs.writeFileSync(
+  path.join(authKeyDir, "paseto_private.key"),
+  pasetoPrivate
+);
+
+/* public -> auth-service */
+
+fs.writeFileSync(
+  path.join(authKeyDir, "paseto_public.pub"),
+  pasetoPublic
+);
+
+/* public -> api-gateway */
+
+fs.writeFileSync(
+  path.join(gatewayKeyDir, "paseto_public.pub"),
+  pasetoPublic
+);
+
+console.log("Keys generated successfully");
