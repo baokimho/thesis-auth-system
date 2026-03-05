@@ -65,6 +65,7 @@ desktop.ini
 *.sw?
 
 # Certificates / Keys
+*.pub
 *.pem
 *.key
 *.crt

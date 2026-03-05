@@ -1,0 +1,21 @@
+{
+  "name": "thesis-auth-system",
+  "version": "1.0.0",
+  "description": "Distributed authentication system comparing JWT and PASETO.",
+  "main": "index.js",
+  "scripts": {
+    "gen-keys": "node scripts/generate-keys.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baokimho/thesis-auth-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/baokimho/thesis-auth-system/issues"
+  },
+  "homepage": "https://github.com/baokimho/thesis-auth-system#readme"
+}
