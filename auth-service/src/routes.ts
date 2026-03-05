@@ -95,4 +95,7 @@ router.post("/verify-paseto", async (req, res) => {
   }
 });
 
+router.get('/health', (_req, res) => {
+  res.send('Good')
+})
 export default router;

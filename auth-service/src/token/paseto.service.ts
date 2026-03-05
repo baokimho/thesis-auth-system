@@ -4,10 +4,10 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 const privateKey = createPrivateKey(
-  readFileSync(join(__dirname, "../key/paseto_private.key"))
+  readFileSync(join(__dirname, "../../key/paseto_private.key"))
 );
 const publicKey = createPublicKey(
-  readFileSync(join(__dirname, "../key/paseto_public.pub"))
+  readFileSync(join(__dirname, "../../key/paseto_public.pub"))
 );
 
 export class PASETOService {

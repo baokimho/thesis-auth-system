@@ -4,11 +4,11 @@ import { join } from "path";
 import { createPrivateKey, createPublicKey } from "crypto";
 
 const privateKey = createPrivateKey(
-  readFileSync(join(__dirname, "../key/jwt_private.key"))
+  readFileSync(join(__dirname, "../../key/jwt_private.key"))
 );
 
 const publicKey = createPublicKey(
-  readFileSync(join(__dirname, "../key/jwt_public.pub"))
+  readFileSync(join(__dirname, "../../key/jwt_public.pub"))
 );
 
 export class JWTService {
