@@ -1,13 +1,9 @@
 import { Request, Response, NextFunction } from "express"
-import jwt from "jsonwebtoken"
-import { readFileSync } from "fs"
-import path from "path"
+import { JWTVerifyService } from "../services/jwtVerify.service"
 import { AuthPayload } from "../types/auth"
 
-const publicKey = readFileSync(
-  path.join(__dirname, "../../key/jwt_public.pem"),
-  "utf8"
-)
+const jwtService = new JWTVerifyService()
+
 
 export const jwtAuth = (
   req: Request,
@@ -31,7 +27,7 @@ export const jwtAuth = (
       })
     }
 
-    const decoded = jwt.verify(token, publicKey)
+    const decoded = jwtService.verify(token)
 
     if (typeof decoded === "string") {
       return res.status(401).json({
