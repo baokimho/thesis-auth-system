@@ -1,6 +1,8 @@
 import express from "express";
 import { jwtAuth } from "./middleware/jwtAuth.middleware";
 import { pasetoAuth } from "./middleware/pasetoAuth.middleware";
+import { resourceProxy } from "./proxy/resource.proxy";
+
 
 const router = express.Router();
 
@@ -22,5 +24,9 @@ router.get("/paseto-protected", pasetoAuth, (req, res) => {
     user: req.user,
   });
 });
+
+router.use("/jwt-resource", jwtAuth, resourceProxy);
+
+router.use("/paseto-resource", pasetoAuth, resourceProxy);
 
 export default router;

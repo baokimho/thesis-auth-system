@@ -27,15 +27,19 @@ export const jwtAuth = (
       })
     }
 
-    const decoded = jwtService.verify(token)
+    const payload = jwtService.verify(token)
 
-    if (typeof decoded === "string") {
+    if (typeof payload === "string") {
       return res.status(401).json({
         error: "Invalid token payload",
       })
     }
 
-    req.user = decoded as AuthPayload
+    req.user = payload as AuthPayload
+
+    // forward user info
+    req.headers["x-user-id"] = payload.userId.toString()
+    req.headers["x-user-email"] = payload.email
 
     next()
   } catch (error) {

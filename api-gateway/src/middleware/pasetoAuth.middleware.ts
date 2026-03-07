@@ -51,6 +51,10 @@ export const pasetoAuth = async (
 
     req.user = payload as AuthPayload
 
+    // forward user info
+    req.headers["x-user-id"] = payload.userId.toString()
+    req.headers["x-user-email"] = payload.email
+
     next()
   } catch (error) {
     return res.status(401).json({
