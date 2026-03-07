@@ -8,7 +8,7 @@ function isAuthPayload(payload: any): payload is AuthPayload {
   return (
     payload &&
     typeof payload === "object" &&
-    typeof payload.userId === "string" &&
+    typeof payload.userId === "number" &&
     typeof payload.email === "string"
   )
 }
