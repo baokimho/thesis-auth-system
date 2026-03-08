@@ -8,9 +8,9 @@ const jwtService = new JWTService();
 const pasetoService = new PASETOService();
 
 /**
- * Login - JWT
+ * JWT LOGIN
  */
-router.post("/login-jwt", (req, res) => {
+router.post("/jwt/login", (req, res) => {
   try {
     const payload = {
       userId: 1,
@@ -20,20 +20,51 @@ router.post("/login-jwt", (req, res) => {
     const accessToken = jwtService.generateAccessToken(payload);
     const refreshToken = jwtService.generateRefreshToken(payload);
 
-    res.json({
-      type: "JWT",
-      accessToken,
-      refreshToken,
-    });
-  } catch (error) {
+    res.json({ accessToken, refreshToken });
+  } catch {
     res.status(500).json({ error: "JWT generation failed" });
   }
 });
 
 /**
- * Login - PASETO
+ * JWT VERIFY
  */
-router.post("/login-paseto", async (req, res) => {
+router.post("/jwt/verify", (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const payload = jwtService.verifyAccessToken(token);
+
+    res.json({ valid: true, payload });
+  } catch {
+    res.status(401).json({ valid: false });
+  }
+});
+
+/**
+ * JWT REFRESH
+ */
+router.post("/jwt/refresh", (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    const payload = jwtService.verifyRefreshToken(refreshToken);
+
+    const newAccessToken = jwtService.generateAccessToken({
+      userId: payload.userId,
+      email: payload.email,
+    });
+
+    res.json({ accessToken: newAccessToken });
+  } catch {
+    res.status(401).json({ message: "Invalid refresh token" });
+  }
+});
+
+/**
+ * PASETO LOGIN
+ */
+router.post("/paseto/login", async (req, res) => {
   try {
     const payload = {
       userId: 1,
@@ -43,59 +74,49 @@ router.post("/login-paseto", async (req, res) => {
     const accessToken = await pasetoService.generateAccessToken(payload);
     const refreshToken = await pasetoService.generateRefreshToken(payload);
 
-    res.json({
-      type: "PASETO",
-      accessToken,
-      refreshToken,
-    });
-  } catch (error) {
+    res.json({ accessToken, refreshToken });
+  } catch {
     res.status(500).json({ error: "PASETO generation failed" });
   }
 });
 
 /**
- * Verify JWT
+ * PASETO VERIFY
  */
-router.post("/verify-jwt", (req, res) => {
-  try {
-    const { token } = req.body;
-
-    const payload = jwtService.verifyAccessToken(token);
-
-    res.json({
-      valid: true,
-      payload,
-    });
-  } catch (error) {
-    res.status(401).json({
-      valid: false,
-      error: "Invalid JWT",
-    });
-  }
-});
-
-/**
- * Verify PASETO
- */
-router.post("/verify-paseto", async (req, res) => {
+router.post("/paseto/verify", async (req, res) => {
   try {
     const { token } = req.body;
 
     const payload = await pasetoService.verifyAccessToken(token);
 
-    res.json({
-      valid: true,
-      payload,
-    });
-  } catch (error) {
-    res.status(401).json({
-      valid: false,
-      error: "Invalid PASETO",
-    });
+    res.json({ valid: true, payload });
+  } catch {
+    res.status(401).json({ valid: false });
   }
 });
 
-router.get('/health', (_req, res) => {
-  res.send('Good')
-})
+/**
+ * PASETO REFRESH
+ */
+router.post("/paseto/refresh", async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    const payload = await pasetoService.verifyRefreshToken(refreshToken);
+
+    const newAccessToken = await pasetoService.generateAccessToken({
+      userId: payload.userId,
+      email: payload.email,
+    });
+
+    res.json({ accessToken: newAccessToken });
+  } catch {
+    res.status(401).json({ message: "Invalid refresh token" });
+  }
+});
+
+router.get("/health", (_req, res) => {
+  res.send("Good");
+});
+
 export default router;
