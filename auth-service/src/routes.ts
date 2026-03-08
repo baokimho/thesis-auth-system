@@ -1,24 +1,13 @@
 import express, { Request, Response} from "express";
 import { JWTService } from "./token/jwt.service";
 import { PASETOService } from "./token/paseto.service";
+import { TokenPayload, VerifyRequest, RefreshRequest } from "@shared/types/auth"
 
 const router = express.Router();
-
 const jwtService = new JWTService();
 const pasetoService = new PASETOService();
 
-interface RefreshRequest {
-  refreshToken: string;
-}
 
-interface VerifyRequest {
-  token: string;
-}
-
-interface TokenPayload {
-  userId: number;
-  email: string;
-}
 
 /**
  * JWT LOGIN
