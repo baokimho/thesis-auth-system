@@ -4,3 +4,15 @@ export interface AuthPayload {
   iat?: number
   exp?: number
 }
+export interface RefreshRequest {
+  refreshToken: string;
+}
+
+export interface VerifyRequest {
+  token: string;
+}
+
+export interface TokenPayload {
+  userId: number;
+  email: string;
+}
