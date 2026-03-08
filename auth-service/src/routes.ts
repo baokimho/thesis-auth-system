@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response} from "express";
 import { JWTService } from "./token/jwt.service";
 import { PASETOService } from "./token/paseto.service";
 
@@ -7,12 +7,25 @@ const router = express.Router();
 const jwtService = new JWTService();
 const pasetoService = new PASETOService();
 
+interface RefreshRequest {
+  refreshToken: string;
+}
+
+interface VerifyRequest {
+  token: string;
+}
+
+interface TokenPayload {
+  userId: number;
+  email: string;
+}
+
 /**
  * JWT LOGIN
  */
-router.post("/jwt/login", (req, res) => {
+router.post("/jwt/login", (_req: Request, res: Response) => {
   try {
-    const payload = {
+    const payload: TokenPayload = {
       userId: 1,
       email: "test@example.com",
     };
@@ -29,11 +42,15 @@ router.post("/jwt/login", (req, res) => {
 /**
  * JWT VERIFY
  */
-router.post("/jwt/verify", (req, res) => {
+router.post("/jwt/verify", (req: Request<{}, {}, VerifyRequest>, res: Response) => {
   try {
     const { token } = req.body;
 
-    const payload = jwtService.verifyAccessToken(token);
+    if (!token) {
+      return res.status(400).json({ message: "token required" });
+    }
+
+    const payload:TokenPayload = jwtService.verifyAccessToken(token);
 
     res.json({ valid: true, payload });
   } catch {
@@ -44,16 +61,17 @@ router.post("/jwt/verify", (req, res) => {
 /**
  * JWT REFRESH
  */
-router.post("/jwt/refresh", (req, res) => {
+router.post("/jwt/refresh", (req: Request<{}, {}, RefreshRequest>, res: Response) => {
   try {
     const { refreshToken } = req.body;
 
-    const payload = jwtService.verifyRefreshToken(refreshToken);
+    if (!refreshToken) {
+      return res.status(400).json({ message: "refreshToken required" });
+    }
 
-    const newAccessToken = jwtService.generateAccessToken({
-      userId: payload.userId,
-      email: payload.email,
-    });
+    const payload:TokenPayload = jwtService.verifyRefreshToken(refreshToken);
+
+    const newAccessToken = jwtService.generateAccessToken(payload);
 
     res.json({ accessToken: newAccessToken });
   } catch {
@@ -64,9 +82,9 @@ router.post("/jwt/refresh", (req, res) => {
 /**
  * PASETO LOGIN
  */
-router.post("/paseto/login", async (req, res) => {
+router.post("/paseto/login", async (_req: Request, res: Response) => {
   try {
-    const payload = {
+    const payload: TokenPayload = {
       userId: 1,
       email: "test@example.com",
     };
@@ -83,11 +101,15 @@ router.post("/paseto/login", async (req, res) => {
 /**
  * PASETO VERIFY
  */
-router.post("/paseto/verify", async (req, res) => {
+router.post("/paseto/verify", async (req: Request<{}, {}, VerifyRequest>, res: Response) => {
   try {
     const { token } = req.body;
 
-    const payload = await pasetoService.verifyAccessToken(token);
+    if (!token) {
+      return res.status(400).json({ message: "token required" });
+    }
+
+    const payload:TokenPayload = await pasetoService.verifyAccessToken(token);
 
     res.json({ valid: true, payload });
   } catch {
@@ -98,16 +120,17 @@ router.post("/paseto/verify", async (req, res) => {
 /**
  * PASETO REFRESH
  */
-router.post("/paseto/refresh", async (req, res) => {
+router.post("/paseto/refresh", async (req: Request<{}, {}, RefreshRequest>, res: Response) => {
   try {
     const { refreshToken } = req.body;
 
-    const payload = await pasetoService.verifyRefreshToken(refreshToken);
+    if (!refreshToken) {
+      return res.status(400).json({ message: "refreshToken required" });
+    }
 
-    const newAccessToken = await pasetoService.generateAccessToken({
-      userId: payload.userId,
-      email: payload.email,
-    });
+    const payload:TokenPayload = await pasetoService.verifyRefreshToken(refreshToken);
+
+    const newAccessToken = await pasetoService.generateAccessToken(payload);
 
     res.json({ accessToken: newAccessToken });
   } catch {
@@ -115,7 +138,7 @@ router.post("/paseto/refresh", async (req, res) => {
   }
 });
 
-router.get("/health", (_req, res) => {
+router.get("/health", (_req: Request, res: Response) => {
   res.send("Good");
 });
 

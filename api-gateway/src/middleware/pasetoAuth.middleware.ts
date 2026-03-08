@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express"
-import { AuthPayload } from "../types/auth"
+import { AuthPayload } from "@shared/types/auth"
 import { PasetoVerifyService } from "../services/pasetoVerify.service"
 
 const pasetoService = new PasetoVerifyService()

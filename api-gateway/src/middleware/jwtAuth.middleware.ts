@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import { JWTVerifyService } from "../services/jwtVerify.service"
-import { AuthPayload } from "../types/auth"
+import { AuthPayload } from "@shared/types/auth"
 
 const jwtService = new JWTVerifyService()
 
