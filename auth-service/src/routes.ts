@@ -31,7 +31,7 @@ router.post("/jwt/login", (_req: Request, res: Response) => {
 /**
  * JWT VERIFY
  */
-router.post("/jwt/verify", (req: Request<{}, {}, VerifyRequest>, res: Response) => {
+router.post("/jwt/verify", async (req: Request<{}, {}, VerifyRequest>, res: Response) => {
   try {
     const { token } = req.body;
 
@@ -39,7 +39,7 @@ router.post("/jwt/verify", (req: Request<{}, {}, VerifyRequest>, res: Response) 
       return res.status(400).json({ message: "token required" });
     }
 
-    const payload:TokenPayload = jwtService.verifyAccessToken(token);
+    const payload:TokenPayload = await jwtService.verifyAccessToken(token);
 
     res.json({ valid: true, payload });
   } catch {
@@ -50,7 +50,7 @@ router.post("/jwt/verify", (req: Request<{}, {}, VerifyRequest>, res: Response) 
 /**
  * JWT REFRESH
  */
-router.post("/jwt/refresh", (req: Request<{}, {}, RefreshRequest>, res: Response) => {
+router.post("/jwt/refresh", async (req: Request<{}, {}, RefreshRequest>, res: Response) => {
   try {
     const { refreshToken } = req.body;
 
@@ -58,9 +58,9 @@ router.post("/jwt/refresh", (req: Request<{}, {}, RefreshRequest>, res: Response
       return res.status(400).json({ message: "refreshToken required" });
     }
 
-    const payload:TokenPayload = jwtService.verifyRefreshToken(refreshToken);
+    const payload:TokenPayload = await jwtService.verifyRefreshToken(refreshToken);
 
-    const newAccessToken = jwtService.generateAccessToken(payload);
+    const newAccessToken = await jwtService.generateAccessToken(payload);
 
     res.json({ accessToken: newAccessToken });
   } catch {
