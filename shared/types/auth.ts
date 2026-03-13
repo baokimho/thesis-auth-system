@@ -6,8 +6,13 @@ export interface RefreshRequest {
   readonly refreshToken: string;
 }
 
+export const TOKEN_TYPES = {
+  ACCESS: "access",
+  REFRESH: "refresh",
+} as const;
+
 export interface TokenClaims {
-  typ?: "access" | "refresh";
+  typ?: (typeof TOKEN_TYPES)[keyof typeof TOKEN_TYPES];
   iat?: string | number;
   exp?: string | number;
 }

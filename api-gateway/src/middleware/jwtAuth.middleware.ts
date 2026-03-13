@@ -27,7 +27,7 @@ export const jwtAuth = (
       })
     }
 
-    const payload = jwtService.verify(token)
+    const payload = jwtService.verifyAccessToken(token)
 
     if (typeof payload === "string") {
       return res.status(401).json({

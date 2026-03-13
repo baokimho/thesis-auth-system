@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { createPrivateKey, createPublicKey } from "crypto";
-import { AuthPayload, TokenPayload, TokenService } from "@shared/types/auth";
+import { AuthPayload, TokenPayload, TokenService, TOKEN_TYPES } from "@shared/types/auth";
 
 let privateKey: ReturnType<typeof createPrivateKey>;
 let publicKey: ReturnType<typeof createPublicKey>;
@@ -18,11 +18,6 @@ try {
   console.error("[JWTService] Failed to load keys:", err);
   process.exit(1);
 }
-
-const TOKEN_TYPES = {
-  ACCESS: "access",
-  REFRESH: "refresh",
-} as const;
 
 export class JWTService implements TokenService {
   async generateAccessToken(payload: AuthPayload): Promise<string> {

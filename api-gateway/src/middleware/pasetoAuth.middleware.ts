@@ -41,7 +41,7 @@ export const pasetoAuth = async (
       })
     }
 
-    const payload = await pasetoService.verify(token)
+    const payload = await pasetoService.verifyAccessToken(token)
 
     if (!isAuthPayload(payload)) {
     return res.status(401).json({
