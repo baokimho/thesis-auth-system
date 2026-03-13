@@ -3,18 +3,24 @@ export interface AuthPayload {
   email: string
 }
 export interface RefreshRequest {
-  refreshToken: string;
+  readonly refreshToken: string;
+}
+
+export interface TokenClaims {
+  typ?: "access" | "refresh";
+  iat?: string | number;
+  exp?: string | number;
 }
 
 export interface VerifyRequest {
-  token: string;
+  readonly token: string;
 }
 
-export type TokenPayload = AuthPayload & Record<string, unknown>
+export type TokenPayload = AuthPayload & TokenClaims
 export interface TokenService {
-  generateAccessToken(payload: TokenPayload): Promise<string>;
+  generateAccessToken(payload: AuthPayload): Promise<string>;
   verifyAccessToken(token: string): Promise<TokenPayload>;
 
-  generateRefreshToken(payload: TokenPayload): Promise<string>;
+  generateRefreshToken(payload: AuthPayload): Promise<string>;
   verifyRefreshToken(token: string): Promise<TokenPayload>;
 }
