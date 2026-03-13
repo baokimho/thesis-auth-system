@@ -1,21 +1,15 @@
 import express from "express";
-import fs from "fs";
 import path from "path";
 import jwt from "jsonwebtoken";
 import { V4 } from "paseto";
 import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth";
+import { readUtf8File } from "@shared/utils/file";
 
 const app = express();
 
-const jwtPublicKey = fs.readFileSync(
-  path.join(__dirname, "../key/jwt_public.pub"),
-  "utf8"
-);
+const jwtPublicKey = readUtf8File(path.join(__dirname, "../key/jwt_public.pub"));
 
-const pasetoPublicKey = fs.readFileSync(
-  path.join(__dirname, "../key/paseto_public.pub"),
-  "utf8"
-);
+const pasetoPublicKey = readUtf8File(path.join(__dirname, "../key/paseto_public.pub"));
 
 app.use(express.json());
 

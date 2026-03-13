@@ -1,16 +1,13 @@
 import { V4 } from "paseto"
-import fs from "fs"
 import path from "path"
 import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth"
+import { readUtf8File } from "@shared/utils/file"
 
 export class PasetoVerifyService {
   private publicKey: string
 
   constructor() {
-    this.publicKey = fs.readFileSync(
-      path.join(__dirname, "../../key/paseto_public.pub"),
-      "utf8"
-    )
+    this.publicKey = readUtf8File(path.join(__dirname, "../../key/paseto_public.pub"))
   }
 
   private async verifyToken(token: string): Promise<TokenPayload> {

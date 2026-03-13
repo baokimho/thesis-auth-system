@@ -1,18 +1,18 @@
 import { V4 } from "paseto";
 import { createPrivateKey, createPublicKey } from "crypto";
-import { readFileSync } from "fs";
 import { join } from "path";
 import { AuthPayload, TokenPayload, TokenService, TOKEN_TYPES } from "@shared/types/auth";
+import { readUtf8File } from "@shared/utils/file";
 
 let privateKey: ReturnType<typeof createPrivateKey>;
 let publicKey: ReturnType<typeof createPublicKey>;
 
 try {
   privateKey = createPrivateKey(
-    readFileSync(join(__dirname, "../../key/paseto_private.key"))
+    readUtf8File(join(__dirname, "../../key/paseto_private.key"))
   );
   publicKey = createPublicKey(
-    readFileSync(join(__dirname, "../../key/paseto_public.pub"))
+    readUtf8File(join(__dirname, "../../key/paseto_public.pub"))
   );
 } catch (err) {
   console.error("[PASETOService] Failed to load keys:", err);

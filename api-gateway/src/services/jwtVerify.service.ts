@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
-import fs from "fs";
 import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth";
+import { readUtf8File } from "@shared/utils/file";
 
 export class JWTVerifyService {
   private publicKey: string;
 
   constructor() {
-    this.publicKey = fs.readFileSync("key/jwt_public.pub", "utf8");
+    this.publicKey = readUtf8File("key/jwt_public.pub");
   }
 
   private verifyToken(token: string): TokenPayload {
