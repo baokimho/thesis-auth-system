@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 
 const authKeyDir = path.join(__dirname, "../auth-service/key");
 const gatewayKeyDir = path.join(__dirname, "../api-gateway/key");
+const resourceKeyDir = path.join(__dirname, "../resource-service/key");
 
 if (!fs.existsSync(authKeyDir)) {
   fs.mkdirSync(authKeyDir, { recursive: true });
@@ -16,6 +17,10 @@ if (!fs.existsSync(authKeyDir)) {
 
 if (!fs.existsSync(gatewayKeyDir)) {
   fs.mkdirSync(gatewayKeyDir, { recursive: true });
+}
+
+if (!fs.existsSync(resourceKeyDir)) {
+  fs.mkdirSync(resourceKeyDir, { recursive: true });
 }
 
 /**
@@ -59,6 +64,13 @@ fs.writeFileSync(
   jwtPublic
 );
 
+/* public -> resource-service */
+
+fs.writeFileSync(
+  path.join(resourceKeyDir, "jwt_public.pub"),
+  jwtPublic
+);
+
 /**
  * ======================
  * PASETO Ed25519 KEYS
@@ -95,6 +107,13 @@ fs.writeFileSync(
 
 fs.writeFileSync(
   path.join(gatewayKeyDir, "paseto_public.pub"),
+  pasetoPublic
+);
+
+/* public -> resource-service */
+
+fs.writeFileSync(
+  path.join(resourceKeyDir, "paseto_public.pub"),
   pasetoPublic
 );
 
