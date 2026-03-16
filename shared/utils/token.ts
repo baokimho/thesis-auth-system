@@ -9,7 +9,7 @@ function isAccessTokenPayload(payload: unknown): payload is TokenPayload {
 
   const candidate = payload as TokenPayload;
   return (
-    typeof candidate.userId === "number" &&
+    typeof candidate.sub === "number" &&
     typeof candidate.email === "string" &&
     candidate.typ === TOKEN_TYPES.ACCESS
   );

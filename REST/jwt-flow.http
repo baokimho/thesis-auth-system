@@ -1,0 +1,66 @@
+@authHost = http://localhost:3001
+@gatewayHost = http://localhost:3000
+@resourceHost = http://localhost:4000
+
+# ============================================================
+# JWT FLOW
+# Steps: Login → Verify → Protected → Resource Proxy → Direct
+#        → Refresh → Retry with new access token
+# ============================================================
+
+###
+# STEP 1: Login - obtain accessToken and refreshToken
+# @name jwtLogin
+POST {{authHost}}/auth/jwt/login
+Content-Type: application/json
+
+{}
+
+###
+# STEP 2: Verify - validate the accessToken
+POST {{authHost}}/auth/jwt/verify
+Content-Type: application/json
+
+{
+  "token": "{{jwtLogin.response.body.$.accessToken}}"
+}
+
+###
+# STEP 3: Call the protected endpoint through the gateway
+GET {{gatewayHost}}/api/jwt-protected
+Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
+
+###
+# STEP 4: Call resource /profile via the gateway proxy
+GET {{gatewayHost}}/api/jwt-resource
+Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
+
+###
+# STEP 5: Call resource /orders via the gateway proxy
+GET {{gatewayHost}}/api/jwt-resource/orders
+Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
+
+###
+# STEP 6: Call resource service directly (bypass gateway)
+GET {{resourceHost}}/profile
+Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
+
+###
+# STEP 7: Call orders directly (bypass gateway)
+GET {{resourceHost}}/orders
+Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
+
+###
+# STEP 8: Refresh - obtain a new accessToken when the current one expires
+# @name jwtRefresh
+POST {{authHost}}/auth/jwt/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{jwtLogin.response.body.$.refreshToken}}"
+}
+
+###
+# STEP 9: Call resource /profile again with the new accessToken
+GET {{gatewayHost}}/api/jwt-resource
+Authorization: Bearer {{jwtRefresh.response.body.$.accessToken}}

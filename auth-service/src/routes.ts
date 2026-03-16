@@ -19,7 +19,7 @@ const isNonEmptyString = (value: unknown): value is string => {
 router.post("/jwt/login", async (_req: Request, res: Response) => {
   try {
     const payload: AuthPayload = {
-      userId: 1,
+      sub: 1,
       email: "test@example.com",
     };
 
@@ -63,9 +63,9 @@ router.post("/jwt/refresh", async (req: Request<{}, {}, RefreshRequest>, res: Re
     }
 
     const payload:TokenPayload = await jwtService.verifyRefreshToken(refreshToken);
-    const { userId, email } = payload;
+    const { sub, email } = payload;
 
-    const newAccessToken = await jwtService.generateAccessToken({ userId, email });
+    const newAccessToken = await jwtService.generateAccessToken({ sub, email });
 
     res.json({ accessToken: newAccessToken });
   } catch {
@@ -79,7 +79,7 @@ router.post("/jwt/refresh", async (req: Request<{}, {}, RefreshRequest>, res: Re
 router.post("/paseto/login", async (_req: Request, res: Response) => {
   try {
     const payload: AuthPayload = {
-      userId: 1,
+      sub: 1,
       email: "test@example.com",
     };
 
@@ -123,9 +123,9 @@ router.post("/paseto/refresh", async (req: Request<{}, {}, RefreshRequest>, res:
     }
 
     const payload:TokenPayload = await pasetoService.verifyRefreshToken(refreshToken);
-    const { userId, email } = payload;
+    const { sub, email } = payload;
 
-    const newAccessToken = await pasetoService.generateAccessToken({ userId, email });
+    const newAccessToken = await pasetoService.generateAccessToken({ sub, email });
 
     res.json({ accessToken: newAccessToken });
   } catch {

@@ -56,7 +56,7 @@ app.get("/profile", (_req, res) => {
 
   res.json({
     message: "Profile data from resource service",
-    userId: user.userId,
+    sub: user.sub,
     email: user.email,
   });
 });
@@ -66,7 +66,7 @@ app.get("/orders", (_req, res) => {
 
   res.json({
     message: "Orders for user",
-    userId: user.userId,
+    sub: user.sub,
     orders: ["order1", "order2"],
   });
 });
