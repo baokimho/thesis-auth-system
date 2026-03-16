@@ -2,6 +2,7 @@ import { V4 } from "paseto"
 import path from "path"
 import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth"
 import { readUtf8File } from "@shared/utils/file"
+import { verifyAccessToken } from "@shared/utils/token"
 
 export class PasetoVerifyService {
   private publicKey: string
@@ -21,13 +22,7 @@ export class PasetoVerifyService {
   }
 
   async verifyAccessToken(token: string): Promise<TokenPayload> {
-    const payload = await this.verifyToken(token)
-
-    if (payload.typ !== TOKEN_TYPES.ACCESS) {
-      throw new Error("Invalid token type")
-    }
-
-    return payload
+    return verifyAccessToken(this.publicKey, token)
   }
 
   async verifyRefreshToken(token: string): Promise<TokenPayload> {

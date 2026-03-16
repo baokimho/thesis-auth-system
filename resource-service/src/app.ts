@@ -1,9 +1,8 @@
 import express from "express";
 import path from "path";
-import jwt from "jsonwebtoken";
-import { V4 } from "paseto";
-import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth";
+import { TokenPayload } from "@shared/types/auth";
 import { readUtf8File } from "@shared/utils/file";
+import { verifyAccessToken } from "@shared/utils/token";
 
 const app = express();
 
@@ -22,39 +21,12 @@ function extractBearerToken(authHeader?: string): string | null {
   return token || null;
 }
 
-function isAuthTokenPayload(payload: unknown): payload is TokenPayload {
-  if (!payload || typeof payload !== "object") {
-    return false;
-  }
-
-  const candidate = payload as TokenPayload;
-  return (
-    typeof candidate.userId === "number" &&
-    typeof candidate.email === "string" &&
-    candidate.typ === TOKEN_TYPES.ACCESS
-  );
-}
-
-async function verifyAccessToken(token: string): Promise<TokenPayload> {
+async function verifyAccessTokenForResource(token: string): Promise<TokenPayload> {
   try {
-    const jwtPayload = jwt.verify(token, jwtPublicKey, {
-      algorithms: ["RS256"],
-    });
-
-    if (isAuthTokenPayload(jwtPayload)) {
-      return jwtPayload;
-    }
+    return await verifyAccessToken(jwtPublicKey, token);
   } catch {
-    // Continue to PASETO verification.
+    return await verifyAccessToken(pasetoPublicKey, token);
   }
-
-  const pasetoPayload = await V4.verify(token, pasetoPublicKey);
-
-  if (!isAuthTokenPayload(pasetoPayload)) {
-    throw new Error("Invalid token payload");
-  }
-
-  return pasetoPayload;
 }
 
 app.use(async (req, res, next) => {
@@ -67,7 +39,7 @@ app.use(async (req, res, next) => {
       });
     }
 
-    const payload = await verifyAccessToken(token);
+    const payload = await verifyAccessTokenForResource(token);
     res.locals.user = payload;
     next();
   } catch {

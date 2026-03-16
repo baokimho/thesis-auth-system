@@ -3,16 +3,19 @@ import { createPrivateKey, createPublicKey } from "crypto";
 import { join } from "path";
 import { AuthPayload, TokenPayload, TokenService, TOKEN_TYPES } from "@shared/types/auth";
 import { readUtf8File } from "@shared/utils/file";
+import { verifyAccessToken } from "@shared/utils/token";
 
 let privateKey: ReturnType<typeof createPrivateKey>;
 let publicKey: ReturnType<typeof createPublicKey>;
+let publicKeyPem: string;
 
 try {
+  publicKeyPem = readUtf8File(join(__dirname, "../../key/paseto_public.pub"));
   privateKey = createPrivateKey(
     readUtf8File(join(__dirname, "../../key/paseto_private.key"))
   );
   publicKey = createPublicKey(
-    readUtf8File(join(__dirname, "../../key/paseto_public.pub"))
+    publicKeyPem
   );
 } catch (err) {
   console.error("[PASETOService] Failed to load keys:", err);
@@ -29,11 +32,7 @@ export class PASETOService implements TokenService {
   }
 
   async verifyAccessToken(token: string): Promise<TokenPayload> {
-    const payload = (await V4.verify(token, publicKey)) as TokenPayload;
-    if (payload.typ !== TOKEN_TYPES.ACCESS) {
-      throw new Error("Invalid token type");
-    }
-    return payload;
+    return verifyAccessToken(publicKeyPem, token);
   }
 
   async generateRefreshToken(payload: AuthPayload): Promise<string> {

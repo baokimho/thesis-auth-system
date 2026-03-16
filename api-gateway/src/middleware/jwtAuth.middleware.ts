@@ -5,7 +5,7 @@ import { AuthPayload } from "@shared/types/auth"
 const jwtService = new JWTVerifyService()
 
 
-export const jwtAuth = (
+export const jwtAuth = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -27,7 +27,7 @@ export const jwtAuth = (
       })
     }
 
-    const payload = jwtService.verifyAccessToken(token)
+    const payload = await jwtService.verifyAccessToken(token)
 
     if (typeof payload === "string") {
       return res.status(401).json({
@@ -36,10 +36,6 @@ export const jwtAuth = (
     }
 
     req.user = payload as AuthPayload
-
-    // forward user info
-    req.headers["x-user-id"] = payload.userId.toString()
-    req.headers["x-user-email"] = payload.email
 
     next()
   } catch (error) {

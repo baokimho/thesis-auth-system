@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth";
 import { readUtf8File } from "@shared/utils/file";
+import { verifyAccessToken } from "@shared/utils/token";
 
 export class JWTVerifyService {
   private publicKey: string;
@@ -21,14 +22,8 @@ export class JWTVerifyService {
     return payload;
   }
 
-  verifyAccessToken(token: string): TokenPayload {
-    const payload = this.verifyToken(token);
-
-    if (payload.typ !== TOKEN_TYPES.ACCESS) {
-      throw new Error("Invalid token type");
-    }
-
-    return payload;
+  async verifyAccessToken(token: string): Promise<TokenPayload> {
+    return verifyAccessToken(this.publicKey, token);
   }
 
   verifyRefreshToken(token: string): TokenPayload {

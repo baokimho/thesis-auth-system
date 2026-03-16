@@ -17,5 +17,10 @@
   "bugs": {
     "url": "https://github.com/baokimho/thesis-auth-system/issues"
   },
-  "homepage": "https://github.com/baokimho/thesis-auth-system#readme"
+  "homepage": "https://github.com/baokimho/thesis-auth-system#readme",
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "jsonwebtoken": "^9.0.3",
+    "paseto": "^3.1.4"
+  }
 }
