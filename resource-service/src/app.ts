@@ -21,12 +21,13 @@ function extractBearerToken(authHeader?: string): string | null {
   return token || null;
 }
 
+function isPasetoToken(token: string): boolean {
+  return token.startsWith("v4.public.");
+}
+
 async function verifyAccessTokenForResource(token: string): Promise<TokenPayload> {
-  try {
-    return await verifyAccessToken(jwtPublicKey, token);
-  } catch {
-    return await verifyAccessToken(pasetoPublicKey, token);
-  }
+  const publicKey = isPasetoToken(token) ? pasetoPublicKey : jwtPublicKey;
+  return verifyAccessToken(publicKey, token);
 }
 
 app.use(async (req, res, next) => {

@@ -6,7 +6,7 @@ export const resourceProxy = createProxyMiddleware({
     pathRewrite: (path) => {
         const rewritten = path.replace(/^\/api\/(jwt|paseto)-resource/, "");
 
-        // Keep backward compatibility for /api/*-resource by forwarding to /profile.
-        return rewritten === "" ? "/profile" : rewritten;
+        // When mounted with router.use("/*-resource", proxy), root requests arrive as "/".
+        return rewritten === "" || rewritten === "/" ? "/profile" : rewritten;
     },
 })
