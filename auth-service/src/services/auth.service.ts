@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import {
   AuthPayload,
+  LoginRequest,
   RefreshRequest,
   RegisterRequest,
   TokenPayload,
@@ -50,10 +51,30 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async login() {
+  async login(req: Pick<LoginRequest, "email" | "password">) {
+    const { email, password } = req;
+
+    if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
+      throw new Error("email and password required");
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password");
+    }
+
     const payload: AuthPayload = {
-      sub: 1,
-      email: "test@example.com",
+      sub: user.id,
+      email: user.email,
     };
 
     const accessToken = await this.tokenService.generateAccessToken(payload);

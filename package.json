@@ -4,7 +4,11 @@
   "description": "Distributed authentication system comparing JWT and PASETO.",
   "main": "index.js",
   "scripts": {
-    "gen-keys": "node scripts/generate-keys.js"
+    "gen-keys": "node scripts/generate-keys.js",
+    "dev:auth": "npm --prefix auth-service run dev",
+    "dev:gateway": "npm --prefix api-gateway run dev",
+    "dev:resource": "npm --prefix resource-service run dev",
+    "dev:all": "concurrently -k -n AUTH,GATEWAY,RESOURCE -c yellow,cyan,green \"npm run dev:auth\" \"npm run dev:gateway\" \"npm run dev:resource\""
   },
   "repository": {
     "type": "git",
@@ -20,6 +24,7 @@
   "homepage": "https://github.com/baokimho/thesis-auth-system#readme",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
+    "concurrently": "^9.2.1",
     "jsonwebtoken": "^9.0.3",
     "paseto": "^3.1.4"
   }

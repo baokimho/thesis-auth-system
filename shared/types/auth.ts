@@ -26,6 +26,11 @@ export interface RegisterRequest {
   readonly password: string;
 }
 
+export interface LoginRequest {
+  readonly email: string;
+  readonly password: string;
+}
+
 export type TokenPayload = AuthPayload & TokenClaims
 export interface TokenService {
   generateAccessToken(payload: AuthPayload): Promise<string>;
