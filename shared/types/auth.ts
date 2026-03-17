@@ -21,6 +21,11 @@ export interface VerifyRequest {
   readonly token: string;
 }
 
+export interface RegisterRequest {
+  readonly email: string;
+  readonly password: string;
+}
+
 export type TokenPayload = AuthPayload & TokenClaims
 export interface TokenService {
   generateAccessToken(payload: AuthPayload): Promise<string>;

@@ -17,7 +17,6 @@ router.get("/jwt-protected", jwtAuth, getJwtProtected);
 router.get("/paseto-protected", pasetoAuth, getPasetoProtected);
 
 router.use("/jwt-resource", jwtAuth, resourceProxy);
-
 router.use("/paseto-resource", pasetoAuth, resourceProxy);
 
 export default router;
