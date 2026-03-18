@@ -5,15 +5,20 @@ import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth"
 import { readUtf8File } from "@shared/utils/file"
 import { toTokenPayload, verifyAccessToken } from "@shared/utils/token"
 
+let publicKeyPem: string
+let publicKey: ReturnType<typeof createPublicKey>
+
+try {
+  publicKeyPem = readUtf8File(path.join(__dirname, "../../key/paseto_public.pub"))
+  publicKey = createPublicKey(publicKeyPem)
+} catch (err) {
+  console.error("[PasetoVerifyService] Failed to load keys:", err)
+  process.exit(1)
+}
+
 export class PasetoVerifyService {
-  private publicKey: string
-
-  constructor() {
-    this.publicKey = readUtf8File(path.join(__dirname, "../../key/paseto_public.pub"))
-  }
-
   private async verifyToken(token: string): Promise<TokenPayload> {
-    const payload = await V4.verify(token, createPublicKey(this.publicKey))
+    const payload = await V4.verify(token, publicKey)
     const normalizedPayload = toTokenPayload(payload)
 
     if (!normalizedPayload) {
@@ -24,7 +29,7 @@ export class PasetoVerifyService {
   }
 
   async verifyAccessToken(token: string): Promise<TokenPayload> {
-    return verifyAccessToken(this.publicKey, token)
+    return verifyAccessToken(publicKeyPem, token)
   }
 
   async verifyRefreshToken(token: string): Promise<TokenPayload> {

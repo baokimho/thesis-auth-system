@@ -45,15 +45,12 @@ export class JWTService implements TokenService {
     const decoded = jwt.verify(token, publicKey, {
       algorithms: ["RS256"],
     });
-    const payload = toTokenPayload(decoded);
+    const payload = toTokenPayload(decoded, TOKEN_TYPES.REFRESH);
 
     if (!payload) {
       throw new Error("Invalid token payload");
     }
 
-    if (payload.typ !== TOKEN_TYPES.REFRESH) {
-      throw new Error("Invalid token type");
-    }
     return payload;
   }
 }

@@ -49,15 +49,12 @@ export class PASETOService implements TokenService {
 
   async verifyRefreshToken(token: string): Promise<TokenPayload> {
     const decoded = await V4.verify(token, publicKey);
-    const payload = toTokenPayload(decoded);
+    const payload = toTokenPayload(decoded, TOKEN_TYPES.REFRESH);
 
     if (!payload) {
       throw new Error("Invalid token payload");
     }
 
-    if (payload.typ !== TOKEN_TYPES.REFRESH) {
-      throw new Error("Invalid token type");
-    }
     return payload;
   }
 }

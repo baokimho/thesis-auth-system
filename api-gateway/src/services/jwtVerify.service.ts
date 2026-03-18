@@ -5,19 +5,24 @@ import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth"
 import { readUtf8File } from "@shared/utils/file"
 import { toTokenPayload, verifyAccessToken } from "@shared/utils/token"
 
+let publicKeyPem: string
+let publicKey: ReturnType<typeof createPublicKey>
+
+try {
+  publicKeyPem = readUtf8File(path.join(__dirname, "../../key/jwt_public.pub"))
+  publicKey = createPublicKey(publicKeyPem)
+} catch (err) {
+  console.error("[JWTVerifyService] Failed to load keys:", err)
+  process.exit(1)
+}
+
 export class JWTVerifyService {
-  private publicKey: string;
-
-  constructor() {
-    this.publicKey = readUtf8File(path.join(__dirname, "../../key/jwt_public.pub"));
-  }
-
   private async verifyToken(token: string): Promise<TokenPayload> {
-    const payload = jwt.verify(token, createPublicKey(this.publicKey), {
+    const payload = jwt.verify(token, publicKey, {
       algorithms: ["RS256"],
     });
 
-    const normalizedPayload = toTokenPayload(payload);
+    const normalizedPayload = toTokenPayload(payload, TOKEN_TYPES.REFRESH);
 
     if (!normalizedPayload) {
       throw new Error("Invalid token payload");
@@ -27,16 +32,10 @@ export class JWTVerifyService {
   }
 
   async verifyAccessToken(token: string): Promise<TokenPayload> {
-    return verifyAccessToken(this.publicKey, token);
+    return verifyAccessToken(publicKeyPem, token);
   }
 
   async verifyRefreshToken(token: string): Promise<TokenPayload> {
-    const payload = await this.verifyToken(token);
-
-    if (payload.typ !== TOKEN_TYPES.REFRESH) {
-      throw new Error("Invalid token type");
-    }
-
-    return payload;
+    return this.verifyToken(token);
   }
 }
