@@ -1,7 +1,7 @@
 @authHost = http://localhost:3001
 @gatewayHost = http://localhost:3000
 @resourceHost = http://localhost:4000
-@jwtEmail = jwt_user_{{$timestamp}}@example.com
+@jwtEmail = jwt_user_test@example.com
 @jwtPassword = P@ssw0rd123!
 
 # ============================================================

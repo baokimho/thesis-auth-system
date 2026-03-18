@@ -3,7 +3,7 @@ import { createPrivateKey, createPublicKey } from "crypto";
 import { join } from "path";
 import { AuthPayload, TokenPayload, TokenService, TOKEN_TYPES } from "@shared/types/auth";
 import { readUtf8File } from "@shared/utils/file";
-import { verifyAccessToken } from "@shared/utils/token";
+import { toTokenPayload, verifyAccessToken } from "@shared/utils/token";
 
 let privateKey: ReturnType<typeof createPrivateKey>;
 let publicKey: ReturnType<typeof createPublicKey>;
@@ -24,8 +24,10 @@ try {
 
 export class PASETOService implements TokenService {
   async generateAccessToken(payload: AuthPayload): Promise<string> {
+    const pasetoPayload = { ...payload, sub: String(payload.sub) };
+
     return V4.sign(
-      { ...payload, typ: TOKEN_TYPES.ACCESS },
+      { ...pasetoPayload, typ: TOKEN_TYPES.ACCESS },
       privateKey,
       { expiresIn: "15m" }
     );
@@ -36,15 +38,23 @@ export class PASETOService implements TokenService {
   }
 
   async generateRefreshToken(payload: AuthPayload): Promise<string> {
+    const pasetoPayload = { ...payload, sub: String(payload.sub) };
+
     return V4.sign(
-      { ...payload, typ: TOKEN_TYPES.REFRESH },
+      { ...pasetoPayload, typ: TOKEN_TYPES.REFRESH },
       privateKey,
       { expiresIn: "7d" }
     );
   }
 
   async verifyRefreshToken(token: string): Promise<TokenPayload> {
-    const payload = (await V4.verify(token, publicKey)) as TokenPayload;
+    const decoded = await V4.verify(token, publicKey);
+    const payload = toTokenPayload(decoded);
+
+    if (!payload) {
+      throw new Error("Invalid token payload");
+    }
+
     if (payload.typ !== TOKEN_TYPES.REFRESH) {
       throw new Error("Invalid token type");
     }

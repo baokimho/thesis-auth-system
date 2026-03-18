@@ -1,7 +1,7 @@
 @authHost = http://localhost:3001
 @gatewayHost = http://localhost:3000
 @resourceHost = http://localhost:4000
-@pasetoEmail = paseto_user_{{$timestamp}}@example.com
+@pasetoEmail = paseto_user_test@example.com
 @pasetoPassword = P@ssw0rd123!
 
 # ============================================================

@@ -1,8 +1,9 @@
 import { V4 } from "paseto"
 import path from "path"
+import { createPublicKey } from "crypto"
 import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth"
 import { readUtf8File } from "@shared/utils/file"
-import { verifyAccessToken } from "@shared/utils/token"
+import { toTokenPayload, verifyAccessToken } from "@shared/utils/token"
 
 export class PasetoVerifyService {
   private publicKey: string
@@ -12,13 +13,14 @@ export class PasetoVerifyService {
   }
 
   private async verifyToken(token: string): Promise<TokenPayload> {
-    const payload = (await V4.verify(token, this.publicKey)) as TokenPayload
+    const payload = await V4.verify(token, createPublicKey(this.publicKey))
+    const normalizedPayload = toTokenPayload(payload)
 
-    if (!payload || typeof payload !== "object") {
+    if (!normalizedPayload) {
       throw new Error("Invalid token payload")
     }
 
-    return payload
+    return normalizedPayload
   }
 
   async verifyAccessToken(token: string): Promise<TokenPayload> {
