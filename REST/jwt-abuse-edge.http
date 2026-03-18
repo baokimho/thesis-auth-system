@@ -91,6 +91,7 @@ Content-Type: application/json
 
 ###
 # EDGE 8: Expired access token -> 401
+# Log in and access after 15mins, or change expired time in the services
 GET {{gatewayHost}}/api/jwt-protected
 Authorization: Bearer {{jwtAbuseLogin.response.body.$.accessToken}}
 
