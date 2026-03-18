@@ -1,0 +1,108 @@
+@authHost = http://localhost:3001
+@gatewayHost = http://localhost:3000
+@resourceHost = http://localhost:4000
+@jwtEmail = jwt_abuse_test@example.com
+@jwtPassword = P@ssw0rd123!
+@fakeInternalSecret = attacker-secret
+
+# ============================================================
+# JWT ABUSE / ATTACK / EDGE CASES
+# Goal: negative testing for auth guard, refresh flow, and internal secret boundary
+# ============================================================
+
+###
+# STEP 0: Setup - register account (can return 201 or 409 if already exists)
+# @name jwtAbuseRegister
+POST {{authHost}}/auth/jwt/register
+Content-Type: application/json
+
+{
+  "email": "{{jwtEmail}}",
+  "password": "{{jwtPassword}}"
+}
+
+###
+# STEP 1: Setup - login and capture valid tokens
+# @name jwtAbuseLogin
+POST {{authHost}}/auth/jwt/login
+Content-Type: application/json
+
+{
+  "email": "{{jwtEmail}}",
+  "password": "{{jwtPassword}}"
+}
+
+###
+# EDGE 1: No Authorization header -> 401
+GET {{gatewayHost}}/api/jwt-protected
+
+###
+# EDGE 2: Wrong auth scheme -> 401
+GET {{gatewayHost}}/api/jwt-protected
+Authorization: Token {{jwtAbuseLogin.response.body.$.accessToken}}
+
+###
+# EDGE 3: Empty Bearer token -> 401
+GET {{gatewayHost}}/api/jwt-protected
+Authorization: Bearer
+
+###
+# EDGE 4: Tampered JWT signature -> 401
+# Append random suffix to invalidate signature
+GET {{gatewayHost}}/api/jwt-protected
+Authorization: Bearer {{jwtAbuseLogin.response.body.$.accessToken}}tampered
+
+###
+# EDGE 5: Verify endpoint with malformed token -> 401 { valid: false }
+POST {{authHost}}/auth/jwt/verify
+Content-Type: application/json
+
+{
+  "token": "not.a.jwt"
+}
+
+###
+# EDGE 6: Refresh endpoint with accessToken instead of refreshToken -> 401
+POST {{authHost}}/auth/jwt/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{jwtAbuseLogin.response.body.$.accessToken}}"
+}
+
+###
+# EDGE 7: Cross-protocol misuse (PASETO token on JWT verify) -> 401 { valid: false }
+# @name pasetoForJwtCrossCheck
+POST {{authHost}}/auth/paseto/login
+Content-Type: application/json
+
+{
+  "email": "{{jwtEmail}}",
+  "password": "{{jwtPassword}}"
+}
+
+###
+POST {{authHost}}/auth/jwt/verify
+Content-Type: application/json
+
+{
+  "token": "{{pasetoForJwtCrossCheck.response.body.$.accessToken}}"
+}
+
+###
+# EDGE 8: Expired access token -> 401
+GET {{gatewayHost}}/api/jwt-protected
+Authorization: Bearer {{jwtAbuseLogin.response.body.$.accessToken}}
+
+###
+# ATTACK 1: Direct resource call with forged internal secret header -> 403 Forbidden
+GET {{resourceHost}}/profile
+Authorization: Bearer {{jwtAbuseLogin.response.body.$.accessToken}}
+x-internal-secret: {{fakeInternalSecret}}
+
+###
+# ATTACK 2: Client tries to inject x-internal-secret through gateway.
+# Gateway middleware should overwrite client value with trusted secret -> expected success (200)
+GET {{gatewayHost}}/api/jwt-resource
+Authorization: Bearer {{jwtAbuseLogin.response.body.$.accessToken}}
+x-internal-secret: {{fakeInternalSecret}}

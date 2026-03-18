@@ -57,12 +57,12 @@ GET {{gatewayHost}}/api/paseto-resource/orders
 Authorization: Bearer {{pasetoLogin.response.body.$.accessToken}}
 
 ###
-# STEP 7: Call resource service directly (bypass gateway)
+# STEP 7: Call resource service directly (bypass gateway) will return 403
 GET {{resourceHost}}/profile
 Authorization: Bearer {{pasetoLogin.response.body.$.accessToken}}
 
 ###
-# STEP 8: Call orders directly (bypass gateway)
+# STEP 8: Call orders directly (bypass gateway) will return 403
 GET {{resourceHost}}/orders
 Authorization: Bearer {{pasetoLogin.response.body.$.accessToken}}
 

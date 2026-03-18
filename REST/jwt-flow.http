@@ -57,12 +57,12 @@ GET {{gatewayHost}}/api/jwt-resource/orders
 Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
 
 ###
-# STEP 7: Call resource service directly (bypass gateway)
+# STEP 7: Call resource service directly (bypass gateway) will return 403
 GET {{resourceHost}}/profile
 Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
 
 ###
-# STEP 8: Call orders directly (bypass gateway)
+# STEP 8: Call orders directly (bypass gateway) will return 403
 GET {{resourceHost}}/orders
 Authorization: Bearer {{jwtLogin.response.body.$.accessToken}}
 
