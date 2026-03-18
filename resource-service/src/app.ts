@@ -1,8 +1,10 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { TokenPayload } from "@shared/types/auth";
 import { readUtf8File } from "@shared/utils/file";
 import { verifyAccessToken } from "@shared/utils/token";
+import { validateInternalSecret } from "./middleware/internalSecretValidate.middleware";
 
 const app = express();
 
@@ -11,6 +13,7 @@ const jwtPublicKey = readUtf8File(path.join(__dirname, "../key/jwt_public.pub"))
 const pasetoPublicKey = readUtf8File(path.join(__dirname, "../key/paseto_public.pub"));
 
 app.use(express.json());
+app.use(validateInternalSecret);
 
 function extractBearerToken(authHeader?: string): string | null {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
