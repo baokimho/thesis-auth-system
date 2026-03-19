@@ -10,8 +10,23 @@ import {
 } from "@shared/types/auth";
 import { prisma } from "../lib/prisma";
 import { isNonEmptyString } from "../helpers/string.helper";
+import { hashToken } from "../helpers/token.helper";
 
 const BCRYPT_SALT_ROUNDS = 10;
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+
+const revokeAllActiveRefreshTokensForUser = async (userId: number) => {
+  await prisma.refreshTokens.updateMany({
+    where: {
+      userId,
+      revokeAt: null,
+    },
+    data: {
+      revokeAt: new Date()
+    }
+  })
+}
 
 export class AuthService {
   constructor(private tokenService: TokenService) {}
@@ -47,7 +62,15 @@ export class AuthService {
 
     const accessToken = await this.tokenService.generateAccessToken(payload);
     const refreshToken = await this.tokenService.generateRefreshToken(payload);
-    console.log(user)
+    const tokenHash = hashToken(refreshToken)
+    await prisma.refreshTokens.create({
+      data: {
+        tokenHash,
+        userId: user.id,
+        expiresAt,
+      }
+    })
+
     return { accessToken, refreshToken };
   }
 
@@ -80,6 +103,16 @@ export class AuthService {
     const accessToken = await this.tokenService.generateAccessToken(payload);
     const refreshToken = await this.tokenService.generateRefreshToken(payload);
 
+    const tokenHash = hashToken(refreshToken);
+
+    await prisma.refreshTokens.create({
+      data: {
+        tokenHash,
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
     return { accessToken, refreshToken };
   }
 
@@ -102,11 +135,45 @@ export class AuthService {
       throw new Error("refreshToken required");
     }
 
+    const tokenHash = hashToken(refreshToken)
+    const existing = await prisma.refreshTokens.findFirst({
+      where: { tokenHash }
+    })
+    if (!existing) {
+      throw new Error("Invalid refresh token")
+    }
+
+    if (existing.revokeAt){
+      await revokeAllActiveRefreshTokensForUser(existing.userId)
+      throw new Error("Token reused detected")
+    }
+
+    if (existing.expiresAt < new Date()) {
+      throw new Error("Token expired")
+    }
+
     const payload: TokenPayload = await this.tokenService.verifyRefreshToken(refreshToken);
     const { sub, email } = payload;
 
     const newAccessToken = await this.tokenService.generateAccessToken({ sub, email });
+    const newRefreshToken = await this.tokenService.generateRefreshToken(payload)
+    const newRefreshTokenHash = hashToken(newRefreshToken)
 
-    return { accessToken: newAccessToken };
+    const newToken = await prisma.refreshTokens.create({
+      data: {
+        userId: existing.userId,
+        tokenHash: newRefreshTokenHash,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+      }
+    })
+    await prisma.refreshTokens.update({
+      where: { id: existing.id},
+      data: {
+        revokeAt: new Date(),
+        replacedByTokenId: newToken.id
+      }
+    })
+
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 }

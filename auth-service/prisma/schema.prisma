@@ -16,11 +16,14 @@ model User {
 
 model RefreshTokens {
   id           Int      @id @default(autoincrement())
-  tokenHash    String
+  tokenHash    String   @unique
   userId       Int
   user         User @relation(fields: [userId], references: [id])
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   revokeAt     DateTime?
-  replacedByTokenId Int?
+  replacedByTokenId Int? @unique
+  replaceBy    RefreshTokens @relation("TokenRotation",fields: [ replacedByTokenId ], references: [ id ])
+  replacementFor    RefreshTokens @relation("TokenRotation")
+  @@index([userId])
 }
