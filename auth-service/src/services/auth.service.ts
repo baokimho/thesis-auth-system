@@ -14,7 +14,6 @@ import { hashToken } from "../helpers/token.helper";
 
 const BCRYPT_SALT_ROUNDS = 10;
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
 const revokeAllActiveRefreshTokensForUser = async (userId: number) => {
   await prisma.refreshTokens.updateMany({
@@ -67,7 +66,7 @@ export class AuthService {
       data: {
         tokenHash,
         userId: user.id,
-        expiresAt,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
       }
     })
 
@@ -109,7 +108,7 @@ export class AuthService {
       data: {
         tokenHash,
         userId: user.id,
-        expiresAt,
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
       },
     });
 
