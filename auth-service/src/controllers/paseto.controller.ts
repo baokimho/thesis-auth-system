@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { RegisterRequest, LoginRequest, RefreshRequest, VerifyRequest } from "@shared/types/auth";
 import { PASETOService } from "../token/paseto.service";
 import { AuthService } from "../services/auth.service";
+import { classifyRefreshError } from "../helpers/refreshError.helper";
 
 const pasetoService = new PASETOService();
 const authService = new AuthService(pasetoService);
@@ -54,7 +55,8 @@ export const pasetoRefresh = async (
   try {
     const result = await authService.refresh(req.body);
     res.json(result);
-  } catch {
-    res.status(401).json({ message: "Invalid refresh token" });
+  } catch (error) {
+    const { status, code, message } = classifyRefreshError(error);
+    res.status(status).json({ code, message });
   }
 };
