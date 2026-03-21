@@ -158,20 +158,29 @@ export class AuthService {
     const newRefreshToken = await this.tokenService.generateRefreshToken(payload)
     const newRefreshTokenHash = hashToken(newRefreshToken)
 
-    const newToken = await prisma.refreshTokens.create({
-      data: {
-        userId: existing.userId,
-        tokenHash: newRefreshTokenHash,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-      }
+    const newToken = await prisma.$transaction(async (tx) => {
+      const created = await tx.refreshTokens.create({
+        data: {
+          userId: existing.userId,
+          tokenHash: newRefreshTokenHash,
+          expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+        }
+      })
+
+      await tx.refreshTokens.update({
+        where: { id: existing.id},
+        data: {
+          revokeAt: new Date(),
+          replacedByTokenId: created.id
+        }
+      })
+
+      return created
     })
-    await prisma.refreshTokens.update({
-      where: { id: existing.id},
-      data: {
-        revokeAt: new Date(),
-        replacedByTokenId: newToken.id
-      }
-    })
+
+    console.info(
+      `[Token Rotation] userId=${existing.userId} oldTokenId=${existing.id} newTokenId=${newToken.id}`
+    );
 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }

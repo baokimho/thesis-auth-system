@@ -23,7 +23,7 @@ model RefreshTokens {
   createdAt    DateTime @default(now())
   revokeAt     DateTime?
   replacedByTokenId Int? @unique
-  replaceBy    RefreshTokens @relation("TokenRotation",fields: [ replacedByTokenId ], references: [ id ])
-  replacementFor    RefreshTokens @relation("TokenRotation")
+  replacedByToken RefreshTokens? @relation("TokenRotation", fields: [replacedByTokenId], references: [id])
+  replacesToken   RefreshTokens? @relation("TokenRotation")
   @@index([userId])
 }
