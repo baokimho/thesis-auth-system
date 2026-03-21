@@ -14,6 +14,10 @@ import { hashToken } from "../helpers/token.helper";
 
 const BCRYPT_SALT_ROUNDS = 10;
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+const REVOKED_TOKEN_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+
+let lastRefreshTokenCleanupAt = 0;
 
 const revokeAllActiveRefreshTokensForUser = async (userId: number) => {
   await prisma.refreshTokens.updateMany({
@@ -25,6 +29,32 @@ const revokeAllActiveRefreshTokensForUser = async (userId: number) => {
       revokeAt: new Date()
     }
   })
+}
+
+const maybeCleanupRefreshTokens = async () => {
+  const nowMs = Date.now();
+
+  if (nowMs - lastRefreshTokenCleanupAt < REFRESH_TOKEN_CLEANUP_INTERVAL_MS) {
+    return;
+  }
+
+  lastRefreshTokenCleanupAt = nowMs;
+  const now = new Date(nowMs);
+  const revokedRetentionCutoff = new Date(nowMs - REVOKED_TOKEN_RETENTION_MS);
+
+  await prisma.refreshTokens.deleteMany({
+    where: {
+      OR: [
+        { expiresAt: { lt: now } },
+        {
+          revokeAt: {
+            not: null,
+            lt: revokedRetentionCutoff,
+          },
+        },
+      ],
+    },
+  });
 }
 
 export class AuthService {
@@ -154,6 +184,11 @@ export class AuthService {
     const payload: TokenPayload = await this.tokenService.verifyRefreshToken(refreshToken);
     const { sub, email } = payload;
 
+    if (sub !== existing.userId) {
+      await revokeAllActiveRefreshTokensForUser(existing.userId);
+      throw new Error("Refresh token user mismatch");
+    }
+
     const newAccessToken = await this.tokenService.generateAccessToken({ sub, email });
     const newRefreshToken = await this.tokenService.generateRefreshToken(payload)
     const newRefreshTokenHash = hashToken(newRefreshToken)
@@ -181,6 +216,8 @@ export class AuthService {
     console.info(
       `[Token Rotation] userId=${existing.userId} oldTokenId=${existing.id} newTokenId=${newToken.id}`
     );
+
+    await maybeCleanupRefreshTokens();
 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
