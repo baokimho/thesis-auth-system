@@ -60,3 +60,16 @@ export const pasetoRefresh = async (
     res.status(status).json({ code, message });
   }
 };
+
+export const pasetoLogout = async (
+  req: Request<{}, {}, RefreshRequest>,
+  res: Response
+) => {
+  try {
+    const result = await authService.logout(req.body);
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "PASETO logout failed";
+    res.status(401).json({ error: message });
+  }
+};

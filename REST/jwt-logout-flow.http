@@ -1,0 +1,16 @@
+### JWT Login
+POST http://localhost:3001/jwt/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "test123"
+}
+
+### Save refresh token and logout
+POST http://localhost:3001/jwt/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "your-refresh-token-here"
+}

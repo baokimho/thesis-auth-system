@@ -235,4 +235,34 @@ export class AuthService {
 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
+
+  async logout(req: Pick<RefreshRequest, "refreshToken">) {
+    const { refreshToken } = req;
+
+    if (!isNonEmptyString(refreshToken)) {
+      throw new Error("refreshToken required");
+    }
+
+    const tokenHash = hashToken(refreshToken);
+    const existing = await prisma.refreshTokens.findFirst({
+      where: { tokenHash },
+    });
+
+    if (!existing) {
+      throw new Error("Invalid refresh token");
+    }
+
+    if (existing.revokeAt) {
+      throw new Error("Token already revoked");
+    }
+
+    await prisma.refreshTokens.update({
+      where: { id: existing.id },
+      data: { revokeAt: new Date() },
+    });
+
+    await maybeCleanupRefreshTokens();
+
+    return { message: "Logged out successfully" };
+  }
 }

@@ -60,3 +60,16 @@ export const jwtRefresh = async (
     res.status(status).json({ code, message });
   }
 };
+
+export const jwtLogout = async (
+  req: Request<{}, {}, RefreshRequest>,
+  res: Response
+) => {
+  try {
+    const result = await authService.logout(req.body);
+    res.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "JWT logout failed";
+    res.status(401).json({ error: message });
+  }
+};
