@@ -3,6 +3,7 @@ import { jwtAuth } from "./middleware/jwtAuth.middleware";
 import { pasetoAuth } from "./middleware/pasetoAuth.middleware";
 import { injectInternalSecret } from "./middleware/internalSecretInject.middleware";
 import { resourceProxy } from "./proxy/resource.proxy";
+import { authProxy } from "./proxy/auth.proxy";
 import {
   getJwtProtected,
   getPasetoProtected,
@@ -13,6 +14,7 @@ import {
 const router = express.Router();
 
 router.get("/public", getPublic);
+router.use("/auth", authProxy);
 
 router.get("/jwt-protected", jwtAuth, getJwtProtected);
 router.get("/paseto-protected", pasetoAuth, getPasetoProtected);

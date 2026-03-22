@@ -1,0 +1,114 @@
+@gatewayHost = http://localhost:3000
+@jwtGatewayEmail = jwt_gateway_user_test@example.com
+@jwtGatewayPassword = P@ssw0rd123!
+@pasetoGatewayEmail = paseto_gateway_user_test@example.com
+@pasetoGatewayPassword = P@ssw0rd123!
+
+# ============================================================
+# AUTH FLOW THROUGH API GATEWAY
+# Goal: call auth-service only through gateway proxy /api/auth/*
+# ============================================================
+
+###
+# JWT STEP 1: Register
+# @name jwtGatewayRegister
+POST {{gatewayHost}}/api/auth/jwt/register
+Content-Type: application/json
+
+{
+  "email": "{{jwtGatewayEmail}}",
+  "password": "{{jwtGatewayPassword}}"
+}
+
+###
+# JWT STEP 2: Login
+# @name jwtGatewayLogin
+POST {{gatewayHost}}/api/auth/jwt/login
+Content-Type: application/json
+
+{
+  "email": "{{jwtGatewayEmail}}",
+  "password": "{{jwtGatewayPassword}}"
+}
+
+###
+# JWT STEP 3: Verify access token via gateway
+POST {{gatewayHost}}/api/auth/jwt/verify
+Content-Type: application/json
+
+{
+  "token": "{{jwtGatewayLogin.response.body.$.accessToken}}"
+}
+
+###
+# JWT STEP 4: Refresh token via gateway
+# @name jwtGatewayRefresh
+POST {{gatewayHost}}/api/auth/jwt/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{jwtGatewayLogin.response.body.$.refreshToken}}"
+}
+
+###
+# JWT STEP 5: Verify the refreshed access token
+POST {{gatewayHost}}/api/auth/jwt/verify
+Content-Type: application/json
+
+{
+  "token": "{{jwtGatewayRefresh.response.body.$.accessToken}}"
+}
+
+###
+# PASETO STEP 1: Register
+# @name pasetoGatewayRegister
+POST {{gatewayHost}}/api/auth/paseto/register
+Content-Type: application/json
+
+{
+  "email": "{{pasetoGatewayEmail}}",
+  "password": "{{pasetoGatewayPassword}}"
+}
+
+###
+# PASETO STEP 2: Login
+# @name pasetoGatewayLogin
+POST {{gatewayHost}}/api/auth/paseto/login
+Content-Type: application/json
+
+{
+  "email": "{{pasetoGatewayEmail}}",
+  "password": "{{pasetoGatewayPassword}}"
+}
+
+###
+# PASETO STEP 3: Verify access token via gateway
+POST {{gatewayHost}}/api/auth/paseto/verify
+Content-Type: application/json
+
+{
+  "token": "{{pasetoGatewayLogin.response.body.$.accessToken}}"
+}
+
+###
+# PASETO STEP 4: Refresh token via gateway
+# @name pasetoGatewayRefresh
+POST {{gatewayHost}}/api/auth/paseto/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{pasetoGatewayLogin.response.body.$.refreshToken}}"
+}
+
+###
+# PASETO STEP 5: Verify the refreshed access token
+POST {{gatewayHost}}/api/auth/paseto/verify
+Content-Type: application/json
+
+{
+  "token": "{{pasetoGatewayRefresh.response.body.$.accessToken}}"
+}
+
+###
+# Health check through gateway auth proxy
+GET {{gatewayHost}}/api/auth

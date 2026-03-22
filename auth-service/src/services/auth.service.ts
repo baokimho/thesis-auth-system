@@ -189,8 +189,9 @@ export class AuthService {
       throw new Error("Refresh token user mismatch");
     }
 
-    const newAccessToken = await this.tokenService.generateAccessToken({ sub, email });
-    const newRefreshToken = await this.tokenService.generateRefreshToken(payload)
+    const nextAuthPayload: AuthPayload = { sub, email };
+    const newAccessToken = await this.tokenService.generateAccessToken(nextAuthPayload);
+    const newRefreshToken = await this.tokenService.generateRefreshToken(nextAuthPayload)
     const newRefreshTokenHash = hashToken(newRefreshToken)
 
     let newToken;
