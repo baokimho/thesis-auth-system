@@ -9,17 +9,33 @@ import {
   getPasetoProtected,
   getPublic,
 } from "./controllers/gateway.controller";
+import {
+  authRateLimit,
+  resourceRateLimit,
+} from "./middleware/rateLimit.middleware";
 
 
 const router = express.Router();
 
 router.get("/public", getPublic);
-router.use("/auth", authProxy);
+router.use("/auth", authRateLimit, authProxy);
 
 router.get("/jwt-protected", jwtAuth, getJwtProtected);
 router.get("/paseto-protected", pasetoAuth, getPasetoProtected);
 
-router.use("/jwt-resource", jwtAuth, injectInternalSecret, resourceProxy);
-router.use("/paseto-resource", pasetoAuth, injectInternalSecret, resourceProxy);
+router.use(
+  "/jwt-resource",
+  jwtAuth,
+  resourceRateLimit,
+  injectInternalSecret,
+  resourceProxy
+);
+router.use(
+  "/paseto-resource",
+  pasetoAuth,
+  resourceRateLimit,
+  injectInternalSecret,
+  resourceProxy
+);
 
 export default router;

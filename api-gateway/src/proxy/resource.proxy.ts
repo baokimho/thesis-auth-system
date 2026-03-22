@@ -1,4 +1,4 @@
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 
 export const resourceProxy = createProxyMiddleware({
     target: "http://localhost:4000",
@@ -8,5 +8,8 @@ export const resourceProxy = createProxyMiddleware({
 
         // When mounted with router.use("/*-resource", proxy), root requests arrive as "/".
         return rewritten === "" || rewritten === "/" ? "/profile" : rewritten;
+    },
+    on: {
+    proxyReq: fixRequestBody,
     },
 })
