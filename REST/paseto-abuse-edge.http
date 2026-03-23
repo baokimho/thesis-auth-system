@@ -13,7 +13,7 @@
 ###
 # STEP 0: Setup - register account (can return 201 or 409 if already exists)
 # @name pasetoAbuseRegister
-POST {{authHost}}/auth/paseto/register
+POST {{gatewayHost}}/api/auth/paseto/register
 Content-Type: application/json
 
 {
@@ -24,7 +24,7 @@ Content-Type: application/json
 ###
 # STEP 1: Setup - login and capture valid tokens
 # @name pasetoAbuseLogin
-POST {{authHost}}/auth/paseto/login
+POST {{gatewayHost}}/api/auth/paseto/login
 Content-Type: application/json
 
 {
@@ -53,7 +53,7 @@ Authorization: Bearer {{pasetoAbuseLogin.response.body.$.accessToken}}tampered
 
 ###
 # EDGE 5: Verify endpoint with malformed token -> 401 { valid: false }
-POST {{authHost}}/auth/paseto/verify
+POST {{gatewayHost}}/api/auth/paseto/verify
 Content-Type: application/json
 
 {
@@ -62,7 +62,7 @@ Content-Type: application/json
 
 ###
 # EDGE 6: Refresh endpoint with accessToken instead of refreshToken -> 401
-POST {{authHost}}/auth/paseto/refresh
+POST {{gatewayHost}}/api/auth/paseto/refresh
 Content-Type: application/json
 
 {
@@ -72,7 +72,7 @@ Content-Type: application/json
 ###
 # EDGE 7: Cross-protocol misuse (JWT token on PASETO verify) -> 401 { valid: false }
 # @name jwtForPasetoCrossCheck
-POST {{authHost}}/auth/jwt/login
+POST {{gatewayHost}}/api/auth/jwt/login
 Content-Type: application/json
 
 {
@@ -81,7 +81,7 @@ Content-Type: application/json
 }
 
 ###
-POST {{authHost}}/auth/paseto/verify
+POST {{gatewayHost}}/api/auth/paseto/verify
 Content-Type: application/json
 
 {
@@ -91,8 +91,36 @@ Content-Type: application/json
 ###
 # EDGE 8: Expired access token -> 401
 # Log in and access after 15mins, or change expired time in the services
-GET {{gatewayHost}}/api/jwt-protected
+GET {{gatewayHost}}/api/paseto-protected
 Authorization: Bearer {{pasetoAbuseLogin.response.body.$.accessToken}}
+
+###
+# EDGE 9: RT1 -> refresh -> RT2 (rotation success)
+# @name pasetoRotateRt1ToRt2
+POST {{gatewayHost}}/api/auth/paseto/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{pasetoAbuseLogin.response.body.$.refreshToken}}"
+}
+
+###
+# ATTACK 3: Reuse RT1 after rotation -> 403 token_reuse_detected
+POST {{gatewayHost}}/api/auth/paseto/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{pasetoAbuseLogin.response.body.$.refreshToken}}"
+}
+
+###
+# ATTACK 4: After RT1 reuse detection, RT2 must also be revoked -> 403 token_reuse_detected
+POST {{gatewayHost}}/api/auth/paseto/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{pasetoRotateRt1ToRt2.response.body.$.refreshToken}}"
+}
 
 
 ###

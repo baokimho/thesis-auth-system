@@ -18,7 +18,7 @@ import {
 const router = express.Router();
 
 router.get("/public", getPublic);
-router.use("/auth", authRateLimit, authProxy);
+router.use("/auth", authRateLimit, injectInternalSecret, authProxy);
 
 router.get("/jwt-protected", jwtAuth, getJwtProtected);
 router.get("/paseto-protected", pasetoAuth, getPasetoProtected);
