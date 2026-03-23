@@ -1,16 +1,40 @@
-### JWT Login
-POST http://localhost:3001/jwt/login
+@authHost = http://localhost:3001
+@gatewayHost = http://localhost:3000
+@jwtEmail = jwt_user_test@example.com
+@jwtPassword = P@ssw0rd123!
+
+# ============================================================
+# JWT LOGOUT FLOW
+# Steps: Register → Login → Logout
+# ============================================================
+
+###
+# STEP 1: Register
+# @name jwtLogoutRegister
+POST {{gatewayHost}}/api/auth/jwt/register
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "password": "test123"
+  "email": "{{jwtEmail}}",
+  "password": "{{jwtPassword}}"
 }
 
-### Save refresh token and logout
-POST http://localhost:3001/jwt/logout
+###
+# STEP 2: Login
+# @name jwtLogoutLogin
+POST {{gatewayHost}}/api/auth/jwt/login
 Content-Type: application/json
 
 {
-  "refreshToken": "your-refresh-token-here"
+  "email": "{{jwtEmail}}",
+  "password": "{{jwtPassword}}"
+}
+
+###
+# STEP 3: Logout - revoke refresh token
+POST {{gatewayHost}}/api/auth/jwt/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{jwtLogoutLogin.response.body.$.refreshToken}}"
 }

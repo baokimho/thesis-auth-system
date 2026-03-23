@@ -1,16 +1,40 @@
-### PASETO Login
-POST http://localhost:3001/paseto/login
+@authHost = http://localhost:3001
+@gatewayHost = http://localhost:3000
+@pasetoEmail = paseto_user_test@example.com
+@pasetoPassword = P@ssw0rd123!
+
+# ============================================================
+# PASETO LOGOUT FLOW
+# Steps: Register → Login → Logout
+# ============================================================
+
+###
+# STEP 1: Register
+# @name pasetoLogoutRegister
+POST {{gatewayHost}}/api/auth/paseto/register
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "password": "test123"
+  "email": "{{pasetoEmail}}",
+  "password": "{{pasetoPassword}}"
 }
 
-### Save refresh token and logout
-POST http://localhost:3001/paseto/logout
+###
+# STEP 2: Login
+# @name pasetoLogoutLogin
+POST {{gatewayHost}}/api/auth/paseto/login
 Content-Type: application/json
 
 {
-  "refreshToken": "your-refresh-token-here"
+  "email": "{{pasetoEmail}}",
+  "password": "{{pasetoPassword}}"
+}
+
+###
+# STEP 3: Logout - revoke refresh token
+POST {{gatewayHost}}/api/auth/paseto/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{pasetoLogoutLogin.response.body.$.refreshToken}}"
 }
