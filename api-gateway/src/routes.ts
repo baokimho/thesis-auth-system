@@ -18,10 +18,10 @@ import {
 const router = express.Router();
 
 router.get("/public", getPublic);
-router.use("/auth", authRateLimit, injectInternalSecret, authProxy);
-
 router.get("/jwt-protected", jwtAuth, getJwtProtected);
 router.get("/paseto-protected", pasetoAuth, getPasetoProtected);
+
+router.use("/auth", authRateLimit, injectInternalSecret, authProxy);
 
 router.use(
   "/jwt-resource",
@@ -30,6 +30,7 @@ router.use(
   injectInternalSecret,
   resourceProxy
 );
+
 router.use(
   "/paseto-resource",
   pasetoAuth,
