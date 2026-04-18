@@ -206,6 +206,26 @@ These files cover:
 - Refresh tokens are stored as hashes in database.
 - Refresh token reuse triggers revocation of all active refresh tokens for that user.
 
+## Limitations
+
+This project is a thesis prototype and is not production-ready.
+
+- Key distribution is handled locally for demonstration purposes.
+- Testing is mainly based on HTTP request files rather than automated integration tests.
+- The focus is on authentication design and security controls rather than production deployment.
+- Docker/Compose containerization is not included yet (services are run directly in local development).
+- Access tokens are stateless and are not revoked immediately on logout (they remain valid until expiry).
+- Rate limiting uses in-memory stores and is not distributed across multiple instances.
+
+## Future Plans
+
+- Add Docker and Docker Compose for reproducible local and demo environments.
+- Introduce automated integration and end-to-end tests for auth and refresh flows.
+- Add role/permission claims and authorization policies.
+- Move rate limiting and token revocation state to shared infrastructure for horizontal scaling.
+- Add structured logging, metrics, and basic observability dashboards.
+- Add CI pipeline checks for linting, build, and test execution.
+
 ## Troubleshooting
 
 If `npm run dev:all` exits with code 1:

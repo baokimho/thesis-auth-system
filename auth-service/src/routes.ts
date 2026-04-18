@@ -21,7 +21,7 @@ router.post("/jwt/login", jwtLogin);
 router.post("/jwt/verify", jwtVerify);
 router.post("/jwt/refresh", jwtRefresh);
 router.post("/jwt/logout", jwtLogout);
-
+                                                                                                                        
 router.post("/paseto/register", pasetoRegister);
 router.post("/paseto/login", pasetoLogin);
 router.post("/paseto/verify", pasetoVerify);
