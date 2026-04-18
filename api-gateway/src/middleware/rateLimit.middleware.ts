@@ -18,7 +18,7 @@ function getIpKey(req: Request): string {
 
 export const authRateLimit = rateLimit({
   windowMs: getNumberFromEnv("AUTH_RATE_LIMIT_WINDOW_MS", 60 * 1000),
-  max: getNumberFromEnv("AUTH_RATE_LIMIT_MAX", 5),
+  max: getNumberFromEnv("AUTH_RATE_LIMIT_MAX", 20),
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => getIpKey(req),
