@@ -1,0 +1,154 @@
+# Chapter 4.2 representative security test cases
+# This file contains selected manual API tests used for the security analysis
+# of the implemented JWT and PASETO authentication prototype.
+
+@gatewayHost = http://localhost:3000
+@authHost = http://localhost:3001
+@resourceHost = http://localhost:4000
+
+# Valid token placeholders
+@jwtAccessToken = REPLACE_WITH_VALID_JWT_ACCESS_TOKEN
+@jwtRefreshToken = REPLACE_WITH_VALID_JWT_REFRESH_TOKEN
+@pasetoAccessToken = REPLACE_WITH_VALID_PASETO_ACCESS_TOKEN
+@pasetoRefreshToken = REPLACE_WITH_VALID_PASETO_REFRESH_TOKEN
+
+# Deliberately modified token placeholders
+@tamperedJwtAccessToken = REPLACE_WITH_TAMPERED_JWT_ACCESS_TOKEN
+@tamperedPasetoAccessToken = REPLACE_WITH_TAMPERED_PASETO_ACCESS_TOKEN
+
+# Trust-boundary test value
+@fakeInternalSecret = attacker-secret
+
+##################################################
+### 4.2.1 Access Token Replay
+# Purpose: demonstrate that the same valid access token can be reused
+# before expiration.
+# Coverage: BOTH JWT and PASETO.
+# Expected: repeated requests are still accepted while the token remains valid.
+##################################################
+
+### JWT replay - first use
+GET {{gatewayHost}}/api/jwt-resource/profile
+Authorization: Bearer {{jwtAccessToken}}
+
+### JWT replay - second use of the same token
+GET {{gatewayHost}}/api/jwt-resource/profile
+Authorization: Bearer {{jwtAccessToken}}
+
+### PASETO replay - first use
+GET {{gatewayHost}}/api/paseto-resource/profile
+Authorization: Bearer {{pasetoAccessToken}}
+
+### PASETO replay - second use of the same token
+GET {{gatewayHost}}/api/paseto-resource/profile
+Authorization: Bearer {{pasetoAccessToken}}
+
+##################################################
+### 4.2.2 Refresh Token Theft, Rotation, and Reuse Detection
+# Purpose: show refresh-token rotation and reuse detection.
+# Coverage: ONE representative format (JWT).
+# Note: the same rotation and reuse-detection logic is applied to both formats.
+# Expected:
+# - first refresh succeeds and rotates the token
+# - second use of the old token is rejected as reuse
+##################################################
+
+### JWT refresh - first use of valid refresh token
+POST {{gatewayHost}}/api/auth/jwt/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{jwtRefreshToken}}"
+}
+
+### JWT refresh - reuse of the old rotated refresh token
+POST {{gatewayHost}}/api/auth/jwt/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{jwtRefreshToken}}"
+}
+
+##################################################
+### 4.2.3 Token Type Misuse
+# Purpose: verify that refresh tokens are not accepted where access tokens
+# are required.
+# Coverage: BOTH JWT and PASETO.
+# Expected: the request is rejected because the token type is incorrect.
+##################################################
+
+### JWT token-type misuse - refresh token used at protected resource
+GET {{gatewayHost}}/api/jwt-resource/orders
+Authorization: Bearer {{jwtRefreshToken}}
+
+### PASETO token-type misuse - refresh token used at protected resource
+GET {{gatewayHost}}/api/paseto-resource/orders
+Authorization: Bearer {{pasetoRefreshToken}}
+
+##################################################
+### 4.2.4 Token Tampering and Signature Validation
+# Purpose: verify that modified tokens fail verification.
+# Coverage: BOTH JWT and PASETO.
+# Expected: the request is rejected because signature verification fails.
+##################################################
+
+### Tampered JWT access token
+GET {{gatewayHost}}/api/jwt-resource/profile
+Authorization: Bearer {{tamperedJwtAccessToken}}
+
+### Tampered PASETO access token
+GET {{gatewayHost}}/api/paseto-resource/profile
+Authorization: Bearer {{tamperedPasetoAccessToken}}
+
+##################################################
+### 4.2.5 API Gateway Bypass and Internal Service Access
+# Purpose: test trust-boundary enforcement by sending requests directly
+# to the Resource Service instead of through the API Gateway.
+# Coverage: ONE representative format (JWT).
+# Expected: the request is rejected because the internal secret is missing
+# or invalid.
+##################################################
+
+### Direct access to Resource Service without internal secret
+GET {{resourceHost}}/profile
+Authorization: Bearer {{jwtAccessToken}}
+
+### Direct access to Resource Service with fake internal secret
+GET {{resourceHost}}/profile
+Authorization: Bearer {{jwtAccessToken}}
+x-internal-secret: {{fakeInternalSecret}}
+
+##################################################
+### 4.2.6 Endpoint Abuse and Rate Limiting
+# Purpose: test gateway rate limiting with repeated authentication requests.
+# Coverage: ONE representative format (JWT).
+# Expected: after repeated execution, the gateway returns HTTP 429.
+# Note: run the request repeatedly until the configured auth limit is exceeded.
+##################################################
+
+### Repeated JWT login request for rate-limit testing
+POST {{gatewayHost}}/api/auth/jwt/login
+Content-Type: application/json
+
+{
+  "email": "rate.limit.test@example.com",
+  "password": "WrongPassword123!"
+}
+
+### Repeat
+POST {{gatewayHost}}/api/auth/jwt/login
+Content-Type: application/json
+
+{
+  "email": "rate.limit.test@example.com",
+  "password": "WrongPassword123!"
+}
+
+### Repeat
+POST {{gatewayHost}}/api/auth/jwt/login
+Content-Type: application/json
+
+{
+  "email": "rate.limit.test@example.com",
+  "password": "WrongPassword123!"
+}
