@@ -24,10 +24,8 @@ try {
 
 export class PASETOService implements TokenService {
   async generateAccessToken(payload: AuthPayload): Promise<string> {
-    const pasetoPayload = { ...payload, sub: String(payload.sub) };
-
     return V4.sign(
-      { ...pasetoPayload, typ: TOKEN_TYPES.ACCESS },
+      { ...payload, typ: TOKEN_TYPES.ACCESS },
       privateKey,
       { expiresIn: "15m" }
     );
@@ -38,10 +36,8 @@ export class PASETOService implements TokenService {
   }
 
   async generateRefreshToken(payload: AuthPayload): Promise<string> {
-    const pasetoPayload = { ...payload, sub: String(payload.sub) };
-
     return V4.sign(
-      { ...pasetoPayload, typ: TOKEN_TYPES.REFRESH },
+      { ...payload, typ: TOKEN_TYPES.REFRESH },
       privateKey,
       { expiresIn: "7d" }
     );

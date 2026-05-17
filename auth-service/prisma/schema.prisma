@@ -27,3 +27,8 @@ model RefreshTokens {
   replacesToken   RefreshTokens? @relation("TokenRotation")
   @@index([userId])
 }
+
+model SystemSettings {
+  key   String @id
+  value String
+}

@@ -1,5 +1,5 @@
 export interface AuthPayload {
-  sub: number
+  sub: string
   email: string
 }
 export interface RefreshRequest {

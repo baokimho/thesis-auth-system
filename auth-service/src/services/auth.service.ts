@@ -17,8 +17,6 @@ const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const REFRESH_TOKEN_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 const REVOKED_TOKEN_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
-let lastRefreshTokenCleanupAt = 0;
-
 const revokeAllActiveRefreshTokensForUser = async (userId: number) => {
   await prisma.refreshTokens.updateMany({
     where: {
@@ -34,11 +32,16 @@ const revokeAllActiveRefreshTokensForUser = async (userId: number) => {
 const maybeCleanupRefreshTokens = async () => {
   const nowMs = Date.now();
 
-  if (nowMs - lastRefreshTokenCleanupAt < REFRESH_TOKEN_CLEANUP_INTERVAL_MS) {
+  const record = await prisma.systemSettings.findUnique({
+    where: { key: 'last_refresh_token_cleanup_at' },
+  });
+
+  const lastCleanup = record ? parseInt(record.value, 10) : 0;
+
+  if (nowMs - lastCleanup < REFRESH_TOKEN_CLEANUP_INTERVAL_MS) {
     return;
   }
 
-  lastRefreshTokenCleanupAt = nowMs;
   const now = new Date(nowMs);
   const revokedRetentionCutoff = new Date(nowMs - REVOKED_TOKEN_RETENTION_MS);
 
@@ -46,14 +49,15 @@ const maybeCleanupRefreshTokens = async () => {
     where: {
       OR: [
         { expiresAt: { lt: now } },
-        {
-          revokeAt: {
-            not: null,
-            lt: revokedRetentionCutoff,
-          },
-        },
+        { revokeAt: { not: null, lt: revokedRetentionCutoff } },
       ],
     },
+  });
+
+  await prisma.systemSettings.upsert({
+    where: { key: 'last_refresh_token_cleanup_at' },
+    update: { value: nowMs.toString() },
+    create: { key: 'last_refresh_token_cleanup_at', value: nowMs.toString() },
   });
 }
 
@@ -85,7 +89,7 @@ export class AuthService {
     });
 
     const payload: AuthPayload = {
-      sub: user.id,
+      sub: String(user.id),
       email: user.email,
     };
 
@@ -125,7 +129,7 @@ export class AuthService {
     }
 
     const payload: AuthPayload = {
-      sub: user.id,
+      sub: String(user.id),
       email: user.email,
     };
 
@@ -184,7 +188,7 @@ export class AuthService {
     const payload: TokenPayload = await this.tokenService.verifyRefreshToken(refreshToken);
     const { sub, email } = payload;
 
-    if (sub !== existing.userId) {
+    if (sub !== String(existing.userId)) {
       await revokeAllActiveRefreshTokensForUser(existing.userId);
       throw new Error("Refresh token user mismatch");
     }

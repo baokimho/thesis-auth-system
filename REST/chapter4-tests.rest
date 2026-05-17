@@ -6,11 +6,17 @@
 @authHost = http://localhost:3001
 @resourceHost = http://localhost:4000
 
-# Valid token placeholders
-@jwtAccessToken = REPLACE_WITH_VALID_JWT_ACCESS_TOKEN
-@jwtRefreshToken = REPLACE_WITH_VALID_JWT_REFRESH_TOKEN
-@pasetoAccessToken = REPLACE_WITH_VALID_PASETO_ACCESS_TOKEN
-@pasetoRefreshToken = REPLACE_WITH_VALID_PASETO_REFRESH_TOKEN
+# Bootstrap credentials for Chapter 4 tests
+@jwtEmail = chapter4_jwt_user_test@example.com
+@jwtPassword = P@ssw0rd123!
+@pasetoEmail = chapter4_paseto_user_test@example.com
+@pasetoPassword = P@ssw0rd123!
+
+# Valid tokens are populated by the setup requests below
+@jwtAccessToken = {{jwtSetupLogin.response.body.$.accessToken}}
+@jwtRefreshToken = {{jwtSetupLogin.response.body.$.refreshToken}}
+@pasetoAccessToken = {{pasetoSetupLogin.response.body.$.accessToken}}
+@pasetoRefreshToken = {{pasetoSetupLogin.response.body.$.refreshToken}}
 
 # Deliberately modified token placeholders
 @tamperedJwtAccessToken = REPLACE_WITH_TAMPERED_JWT_ACCESS_TOKEN
@@ -18,6 +24,51 @@
 
 # Trust-boundary test value
 @fakeInternalSecret = attacker-secret
+
+##################################################
+### Setup: Register and Login to capture fresh tokens
+# Run this setup block first before executing test cases below.
+##################################################
+
+### Setup JWT register
+# @name jwtSetupRegister
+POST {{gatewayHost}}/api/auth/jwt/register
+Content-Type: application/json
+
+{
+  "email": "{{jwtEmail}}",
+  "password": "{{jwtPassword}}"
+}
+
+### Setup JWT login
+# @name jwtSetupLogin
+POST {{gatewayHost}}/api/auth/jwt/login
+Content-Type: application/json
+
+{
+  "email": "{{jwtEmail}}",
+  "password": "{{jwtPassword}}"
+}
+
+### Setup PASETO register
+# @name pasetoSetupRegister
+POST {{gatewayHost}}/api/auth/paseto/register
+Content-Type: application/json
+
+{
+  "email": "{{pasetoEmail}}",
+  "password": "{{pasetoPassword}}"
+}
+
+### Setup PASETO login
+# @name pasetoSetupLogin
+POST {{gatewayHost}}/api/auth/paseto/login
+Content-Type: application/json
+
+{
+  "email": "{{pasetoEmail}}",
+  "password": "{{pasetoPassword}}"
+}
 
 ##################################################
 ### 4.2.1 Access Token Replay

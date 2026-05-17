@@ -3,8 +3,6 @@ import { V4 } from "paseto";
 import { createPublicKey, KeyObject } from "crypto";
 import { TokenPayload, TOKEN_TYPES } from "@shared/types/auth";
 
-type CandidateTokenPayload = Omit<TokenPayload, "sub"> & { sub: number | string };
-
 export function toTokenPayload(
   payload: unknown,
   expectedType?: (typeof TOKEN_TYPES)[keyof typeof TOKEN_TYPES]
@@ -13,28 +11,17 @@ export function toTokenPayload(
     return null;
   }
 
-  const candidate = payload as CandidateTokenPayload;
+  const candidate = payload as TokenPayload;
 
   if (
+    typeof candidate.sub !== "string" ||
     typeof candidate.email !== "string" ||
     (expectedType !== undefined && candidate.typ !== expectedType)
   ) {
     return null;
   }
 
-  const normalizedSub =
-    typeof candidate.sub === "number"
-      ? candidate.sub
-      : Number.parseInt(candidate.sub, 10);
-
-  if (!Number.isFinite(normalizedSub)) {
-    return null;
-  }
-
-  return {
-    ...candidate,
-    sub: normalizedSub,
-  };
+  return candidate;
 }
 
 function isPasetoToken(token: string): boolean {
